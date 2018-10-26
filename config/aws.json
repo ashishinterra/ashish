@@ -1,0 +1,7 @@
+{
+    "aws": {
+      "accessKeyId": "<placeholder>",
+      "secretAccessKey": "<placeholder>",
+      "region": "us-west-2"
+    }  
+  }

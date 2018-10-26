@@ -1,0 +1,66 @@
+service: homexcloud-api
+
+
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: us-west-2
+  iamRoleStatements:
+     - Effect: Allow
+       Action: 
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+       Resource: "arn:aws:dynamodb:us-west-2:*:table/account"
+     - Effect: Allow
+       Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+       Resource: "arn:aws:dynamodb:us-west-2:*:table/account/index/*"
+
+  plugins:
+  - serverless-express 
+
+
+functions:
+  app:
+    handler: handler.handler
+    events:
+      - http:
+          path: /account
+          method: POST
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+
+
+resources:
+   Resources:
+    accountDynamoDBTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput: 
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+        TableName: 'account'
