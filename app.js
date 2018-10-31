@@ -44,5 +44,6 @@ app.post('/v1/user', userController.registerUser);
 app.get('/v1/user/:username', userController.getUser);
 
 app.post('/v1/login', authController.login);
+app.post('/v1/verify', userController.verifyUser);
 
 module.exports = app;

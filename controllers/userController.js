@@ -15,19 +15,22 @@ module.exports.registerUser = (req, res) => {
     console.log('data==>' + data);
     console.log(data.emailId);
 
-      // Aws congnito related logic
-      const poolData = {
+    // Aws congnito related logic
+    const poolData = {
         UserPoolId: config.aws.UserPoolId, // Your user pool id here    
         ClientId: config.aws.ClientId // Your client id here
     };
     const pool_region = config.aws.region;
     const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-	
+
     console.log("pool set up done. now setting up data to list ");
     let attributeList = [];
-    attributeList.push(new AmazonCognitoIdentity.CognitoUserAttribute({Name:"email",Value:data.emailId}));
+    attributeList.push(new AmazonCognitoIdentity.CognitoUserAttribute({
+        Name: "email",
+        Value: data.emailId
+    }));
     console.log("now signup congnito");
-   
+
     userPool.signUp(data.emailId, data.password, attributeList, null, function (err, result) {
         if (err) {
             console.error(err);
@@ -70,7 +73,7 @@ module.exports.registerUser = (req, res) => {
             });
         });
     });
-    }
+}
 
 module.exports.getUser = (req, res) => {
     console.log('>>>getUser', req);
@@ -117,4 +120,38 @@ module.exports.getUser = (req, res) => {
 
         }
     });
+}
+module.exports.verifyUser = (req, res) => {
+    console.log('>>>verifyUser');
+    console.log('request body==>' + req.body);
+    const data = req.body;
+    console.log('data==>' + data);
+    // Aws congnito related logic
+    const poolData = {
+        UserPoolId: config.aws.UserPoolId, // Your user pool id here    
+        ClientId: config.aws.ClientId // Your client id here
+    };
+    const pool_region = config.aws.region;
+    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+    var userData = {
+        Username: data.emailId,
+        Pool: userPool
+    };
+    const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData)
+    cognitoUser.confirmRegistration(data.pin, true, function (err, result) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        if (result == "SUCCESS") {
+            console.log("Successfully verified account!")
+            cognitoUser.signOut()
+            res.status(200).json({
+                success: false,
+                message: "Successfully verified account!"
+            });
+        } else {
+            rej("Could not verify account")
+        }
+    })
 }

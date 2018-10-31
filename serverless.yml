@@ -37,6 +37,13 @@ custom:
 functions:
   verify-token:
     handler: auth/authHandler.auth
+  verifyUser:
+    handler: handler.handler
+    events:
+      - http:
+          path: /verify
+          method: POST
+          cors: true
   createaccount:
     handler: handler.handler
     events:
