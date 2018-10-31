@@ -1,11 +1,9 @@
 service: homexcloud-api
 
-
-
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: dev
+  stage: RP-Dev
   region: us-west-2
   iamRoleStatements:
      - Effect: Allow
@@ -15,35 +13,75 @@ provider:
         - dynamodb:Scan
         - dynamodb:GetItem
         - dynamodb:UpdateItem
+        - dynamodb:PutItem
         - dynamodb:DeleteItem
-       Resource: "arn:aws:dynamodb:us-west-2:*:table/account"
+       Resource: "*"
      - Effect: Allow
        Action:
         - dynamodb:Query
         - dynamodb:Scan
-       Resource: "arn:aws:dynamodb:us-west-2:*:table/account/index/*"
+       Resource: "*"
 
-  plugins:
-  - serverless-express 
+plugins:
+  - serverless-domain-manager
 
+
+custom:
+  tableThroughput: 1
+  customDomain:
+    domainName: 'api.homexcloud.com'
+    basePath: 'v1'
+    stage: ${self:provider.stage}
+    createRoute53Record: true
 
 functions:
-  app:
+  verify-token:
+    handler: auth/authHandler.auth
+  createaccount:
     handler: handler.handler
     events:
       - http:
           path: /account
           method: POST
-          cors:
-            origin: '*'
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-            allowCredentials: false
+          cors: true
+  listaccount:
+    handler: handler.handler
+    events:
+      - http:
+          path: /account
+          method: GET
+          cors: true
+          authorizer: verify-token
+  updateaccount:
+    handler: handler.handler
+    events:
+      - http:
+          path: /account/{id}
+          method: PUT
+          cors: true
+          authorizer: verify-token
+  createuser:
+    handler: handler.handler
+    events:
+      - http:
+          path: /user
+          method: POST
+          cors: true 
+  listuser:
+    handler: handler.handler
+    events:
+      - http:
+          path: /user/{username}
+          method: GET
+          cors: true
+          authorizer: verify-token 
+  login:
+    handler: handler.handler
+    events:
+      - http:
+          path: /login
+          method: post
+          cors: true
 
 
 resources:
@@ -52,6 +90,7 @@ resources:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
+        TableName: 'account'
         AttributeDefinitions:
           -
             AttributeName: id
@@ -61,6 +100,21 @@ resources:
             AttributeName: id
             KeyType: HASH
         ProvisionedThroughput: 
-            ReadCapacityUnits: 1
-            WriteCapacityUnits: 1
-        TableName: 'account'
+            ReadCapacityUnits: ${self:custom.tableThroughput}
+            WriteCapacityUnits: ${self:custom.tableThroughput}
+    userDynamoDBTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        TableName: 'user'
+        AttributeDefinitions:
+          -
+            AttributeName: userName
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: userName
+            KeyType: HASH
+        ProvisionedThroughput: 
+            ReadCapacityUnits: ${self:custom.tableThroughput}
+            WriteCapacityUnits: ${self:custom.tableThroughput}
