@@ -141,17 +141,23 @@ module.exports.verifyUser = (req, res) => {
     cognitoUser.confirmRegistration(data.pin, true, function (err, result) {
         if (err) {
             console.log(err);
-            return;
+            res.status(400).json({
+                success: false,
+                message: err
+            });
         }
         if (result == "SUCCESS") {
             console.log("Successfully verified account!")
             cognitoUser.signOut()
             res.status(200).json({
-                success: false,
+                success: true,
                 message: "Successfully verified account!"
             });
         } else {
-            rej("Could not verify account")
+            res.status(400).json({
+                success: false,
+                message: "Could not verify account!"
+            });
         }
     })
 }
