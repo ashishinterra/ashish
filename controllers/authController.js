@@ -1,8 +1,11 @@
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
+const AmazonCognitoIdentity = require('amazon-cognito-identity-js');
+const CognitoUserPool = AmazonCognitoIdentity.CognitoUserPool;
+global.fetch = require('node-fetch');
 
 const dynamoDb = require('../db/dynamodb');
-const config = require('../config/secrets.json');
+const config = require('../config/aws.json');
 
 
 module.exports.login = (req, res) => {
@@ -43,13 +46,37 @@ module.exports.login = (req, res) => {
                     const user = item;
                     console.log(" user :: ", user);
                     if (body.password === item.password) {
-                        var token = jwt.sign({ id: item.userName }, config.secretkey, {
-                            expiresIn: config.authTokenExperationTime
+                        // Aws congnito related logic
+                        const poolData = {
+                            UserPoolId: config.aws.UserPoolId, // Your user pool id here    
+                            ClientId: config.aws.ClientId // Your client id here
+                        };
+                        const pool_region = config.aws.region;
+                        const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+                        const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+                            Username: item.emailId,
+                            Password: item.password,
                         });
-                        res.status(200).json({
-                            success: true,
-                            user: user,
-                            token: token
+                        var userData = {
+                            Username: item.emailId,
+                            Pool: userPool
+                        };
+                        const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+                        cognitoUser.authenticateUser(authenticationDetails, {
+                            onSuccess: function (result) {
+                                console.log('access token + ' + result.getAccessToken().getJwtToken());
+                                console.log('id token + ' + result.getIdToken().getJwtToken());
+                                console.log('refresh token + ' + result.getRefreshToken().getToken());
+
+                                res.status(200).json({
+                                    success: true,
+                                    user: user,
+                                    token: result.getAccessToken().getJwtToken()
+                                });
+                            },
+                            onFailure: function (err) {
+                                console.log(err);
+                            },
                         });
                     } else {
                         res.status(401).json({

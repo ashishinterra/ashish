@@ -1,5 +1,15 @@
 const jwt = require('jsonwebtoken');
-const config = require('../config/secrets.json');
+const jwkToPem = require('jwk-to-pem');
+
+const jwk = {
+    "alg": "RS256",
+    "e": "AQAB",
+    "kid": "cP1N639UeCX9FSe3v+iacWet+E/xaiNQOvWiRtKX+E4=",
+    "kty": "RSA",
+    "n": "1PtbQBZ0DzM-JOkS0s5HnUOJDGilJyJRoXrg5U7SnfXVNhIpSQHH-sJh9IYz4K7QEDCe1b2tPfN9s2tVQKpVH4-nS89VCJbQTVNg27Yc-DiX13DVDFMMhot8m1JD5g1t8QPR6zPtdaFbObWcVshSyojpbTyzc-VOg6hovDHtP1Z1Eq4WuvTMhvFn6g2n1X5E8fP7eyOqRdGEqncs2jq7V4JzwM5j6K1UQQLz_EdPWA2qFnL4zIPt6AzQBXLUxVLDItCl4RRWGHB6HtCX-pMRc_s1HTbKgztwPSndaf083dP_iXjSobuZMYuQJmquIKha05b5lf-Ssfig1bpBMoelQQ",
+    "use": "sig"
+};
+const pem = jwkToPem(jwk);
 
 // Policy helper function
 const generatePolicy = (principalId, effect, resource) => {
@@ -24,13 +34,17 @@ module.exports.auth = (event, context, callback) => {
     console.log('req :: ' + JSON.stringify(event));
     const token = event.authorizationToken;
     console.log('token :: ' + token);
-    if (!token)
+    if (!token) {
+        console.log('error :: ' + error);
         return callback(null, 'Unauthorized');
-    jwt.verify(token, config.secretkey, (err, decoded) => {
-        if (err)
+    }
+    jwt.verify(token, pem, { algorithms: ['RS256'] }, (err, decoded) => {
+        if (err) {
+            console.log('err :: ' + err);
             return callback(null, 'Unauthorized');
-
+        }
         // if everything is good, save to request for use in other routes
+        console.log('success :: ');
         return callback(null, generatePolicy(decoded.id, 'Allow', event.methodArn))
     });
 }

@@ -7,7 +7,6 @@ const bodyParser = require('body-parser');
 const accountController = require('./controllers/accountController');
 const userController = require('./controllers/userController');
 const authController = require('./controllers/authController');
-//const { authenticate } = require('./auth/authHandler');
 
 const app = express();
 

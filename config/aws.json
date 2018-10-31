@@ -1,7 +1,9 @@
 {
     "aws": {
-      "accessKeyId": "<placeholder>",
-      "secretAccessKey": "<placeholder>",
-      "region": "us-west-2"
+      "accessKeyId": "AKIAIUEF4P4WVXV37JCQ",
+      "secretAccessKey": "5W0XgS8n2uDrYoL+8BGU45e6k+HGaH5oOh/lAa08",
+      "region": "us-west-2",
+      "UserPoolId": "us-west-2_HEtnFDGy7",
+      "ClientId": "25f06c0f3i44l4ul7s3s8idqal"
     }  
   }
