@@ -16,7 +16,11 @@ module.exports.registerAccount = (req, res) => {
             id: uuid.v1(),
             emailId: data.emailId,
             deviceSerialNumber: data.deviceSerialNumber,
-            homeAddr: data.homeAddr,
+            Address: data.Address,
+            Country: data.Country,
+            State: data.State,
+            City: data.City,
+            Zip: data.Zip,
             createdAt: timestamp,
             updatedAt: timestamp
         }

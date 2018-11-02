@@ -52,7 +52,6 @@ module.exports.registerUser = (req, res) => {
                 userName: data.userName,
                 role: data.role,
                 mobileNumber: data.mobilenumber,
-                accountId: data.accountId,
                 password: data.password,
                 createdAt: timestamp,
                 updatedAt: timestamp

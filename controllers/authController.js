@@ -10,12 +10,12 @@ const config = require('../config/aws.json');
 
 module.exports.login = (req, res) => {
     console.log(req.body);
-    var body = _.pick(req.body, ['user', 'password']);
+    var body = _.pick(req.body, ['userName', 'password']);
     console.log(body);
-    if (_.isEmpty(body.user)) {
+    if (_.isEmpty(body.userName)) {
         res.status(400).send({
             success: false,
-            message: 'user cannot be empty.'
+            message: 'userName cannot be empty.'
         });
     } else if (_.isEmpty(body.password)) {
         res.status(400).send({
@@ -25,19 +25,19 @@ module.exports.login = (req, res) => {
     } else {
         var params = {
             TableName: 'user',
-            KeyConditionExpression: "#uname = :user",
+            KeyConditionExpression: "#uname = :username",
             ExpressionAttributeNames: {
-                "#uname": "emailId"
+                "#uname": "userName"
             },
             ExpressionAttributeValues: {
-                ":user": body.user
+                ":username": body.userName
             }
         }
 
         dynamoDb.query(params, (error, result) => {
             if (error) {
                 console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
-                res.status(401).send('wrong user or password');
+                res.status(401).send('wrong username or password');
             } else {
                 console.log("Query succeeded.");
                 console.log("Query succeeded." + JSON.stringify(result));
