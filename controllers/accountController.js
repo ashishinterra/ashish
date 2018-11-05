@@ -16,11 +16,11 @@ module.exports.registerAccount = (req, res) => {
             id: uuid.v1(),
             emailId: data.emailId,
             deviceSerialNumber: data.deviceSerialNumber,
-            Address: data.Address,
-            Country: data.Country,
-            State: data.State,
-            City: data.City,
-            Zip: data.Zip,
+            address: data.address,
+            country: data.country,
+            state: data.state,
+            city: data.city,
+            zip: data.zip,
             createdAt: timestamp,
             updatedAt: timestamp
         }
@@ -85,8 +85,11 @@ module.exports.updateAccount = (req, res) => {
             id: id,
             emailId: data.emailId,
             deviceSerialNumber: data.deviceSerialNumber,
-            homeAddr: data.homeAddr,
-            createdAt: timestamp,
+            address: data.address,
+            country: data.country,
+            state: data.state,
+            city: data.city,
+            zip: data.zip,
             updatedAt: timestamp
         }
     }
