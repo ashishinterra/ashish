@@ -48,8 +48,8 @@ module.exports.login = (req, res) => {
                     if (body.password === item.password) {
                         // Aws congnito related logic
                         const poolData = {
-                            UserPoolId: config.aws.UserPoolId, // Your user pool id here    
-                            ClientId: config.aws.ClientId // Your client id here
+                            UserPoolId: config.aws.UserPoolId,     
+                            ClientId: config.aws.ClientId
                         };
                         const pool_region = config.aws.region;
                         const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
@@ -75,6 +75,10 @@ module.exports.login = (req, res) => {
                             },
                             onFailure: function (err) {
                                 console.log(err);
+                                res.status(401).json({
+                                    success: false,
+                                    message: 'wrong username or password'
+                                });
                             },
                         });
                     } else {

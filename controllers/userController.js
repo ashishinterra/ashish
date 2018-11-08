@@ -2,6 +2,8 @@ const uuid = require('uuid');
 const AmazonCognitoIdentity = require('amazon-cognito-identity-js');
 const CognitoUserPool = AmazonCognitoIdentity.CognitoUserPool;
 global.fetch = require('node-fetch');
+const validator = require('validator');
+const _ = require('lodash');
 
 const dynamoDb = require('../db/dynamodb');
 const config = require('../config/aws.json');
@@ -12,8 +14,43 @@ module.exports.registerUser = (req, res) => {
     console.log("request==>" + req);
     console.log('request body==>' + req.body);
     const data = req.body;
-    console.log('data==>' + data);
-    console.log(data.emailId);
+
+    if (_.isEmpty(data.emailId)) {
+        res.status(400).send({
+            success: false,
+            message: 'emailId cannot be empty.'
+        });
+    } else if (!validator.isEmail(data.emailId)) {
+        res.status(400).send({
+            success: false,
+            message: 'emailId is not correct'
+        });
+    } else if (_.isEmpty(data.accountId)) {
+        res.status(400).send({
+            success: false,
+            message: 'accountId cannot be empty.'
+        });
+    } else if (_.isEmpty(data.userName)) {
+        res.status(400).send({
+            success: false,
+            message: 'userName cannot be empty.'
+        });
+    } else if (_.isEmpty(data.password)) {
+        res.status(400).send({
+            success: false,
+            message: 'password cannot be empty.'
+        });
+    } else if (_.isEmpty(data.firstName)) {
+        res.status(400).send({
+            success: false,
+            message: 'firstName cannot be empty.'
+        });
+    } else if (_.isEmpty(data.role)) {
+        res.status(400).send({
+            success: false,
+            message: 'role cannot be empty.'
+        });
+    } 
 
     // Aws congnito related logic
     const poolData = {
@@ -49,6 +86,7 @@ module.exports.registerUser = (req, res) => {
                 emailId: data.emailId,
                 firstName: data.firstName,
                 lastName: data.lastName,
+                accountId: data.accountId,
                 userName: data.userName,
                 role: data.role,
                 mobileNumber: data.mobilenumber,
@@ -57,7 +95,17 @@ module.exports.registerUser = (req, res) => {
                 updatedAt: timestamp
             }
         }
-
+        const user = {
+            'emailId': params.Item.emailId,
+            "firstName": params.Item.firstName,
+            "lastName": params.Item.lastName,
+            "userName": params.Item.userName,
+            "role": params.Item.role,
+            "accountId":params.Item.accountId,
+            "mobileNumber": params.Item.mobileNumber,
+            "createdAt":params.Item.createdAt,
+            "updatedAt": params.Item.updatedAt
+        }
         console.log('adding user to dynamodb');
         dynamoDb.put(params, (error, result) => {
             if (error) {
@@ -68,7 +116,8 @@ module.exports.registerUser = (req, res) => {
                 });
             }
             res.status(200).json({
-                success: true
+                success: true,
+                user: user
             });
         });
     });

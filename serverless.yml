@@ -24,6 +24,8 @@ provider:
 
 plugins:
   - serverless-domain-manager
+  - serverless-aws-documentation
+  - serverless-offline
 
 
 custom:

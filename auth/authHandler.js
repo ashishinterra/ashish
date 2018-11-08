@@ -32,16 +32,19 @@ const generatePolicy = (principalId, effect, resource) => {
 
 module.exports.auth = (event, context, callback) => {
     console.log('req :: ' + JSON.stringify(event));
-    const token = event.authorizationToken;
-    console.log('token :: ' + token);
-    if (!token) {
-        console.log('error :: ' + error);
-        return callback(null, 'Unauthorized');
+    let token;
+    if (event.authorizationToken) {
+        token = event.authorizationToken;
+        console.log('token>> ', token);
+    } else {
+        return callback(new Error('[401] Unauthorized, authorization Token not found'));
     }
-    jwt.verify(token, pem, { algorithms: ['RS256'] }, (err, decoded) => {
+    jwt.verify(token, pem, {
+        algorithms: ['RS256']
+    }, (err, decoded) => {
         if (err) {
             console.log('err :: ' + err);
-            return callback(null, 'Unauthorized');
+            return callback(new Error('[401] Unauthorized, authorization Token expired'));
         }
         // if everything is good, save to request for use in other routes
         console.log('success :: ');
