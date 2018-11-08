@@ -50,77 +50,78 @@ module.exports.registerUser = (req, res) => {
             success: false,
             message: 'role cannot be empty.'
         });
-    } 
+    } else {
 
-    // Aws congnito related logic
-    const poolData = {
-        UserPoolId: config.aws.UserPoolId, // Your user pool id here    
-        ClientId: config.aws.ClientId // Your client id here
-    };
-    const pool_region = config.aws.region;
-    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+        // Aws congnito related logic
+        const poolData = {
+            UserPoolId: config.aws.UserPoolId, // Your user pool id here    
+            ClientId: config.aws.ClientId // Your client id here
+        };
+        const pool_region = config.aws.region;
+        const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
-    console.log("pool set up done. now setting up data to list ");
-    let attributeList = [];
-    attributeList.push(new AmazonCognitoIdentity.CognitoUserAttribute({
-        Name: "email",
-        Value: data.emailId
-    }));
-    console.log("now signup congnito");
+        console.log("pool set up done. now setting up data to list ");
+        let attributeList = [];
+        attributeList.push(new AmazonCognitoIdentity.CognitoUserAttribute({
+            Name: "email",
+            Value: data.emailId
+        }));
+        console.log("now signup congnito");
 
-    userPool.signUp(data.emailId, data.password, attributeList, null, function (err, result) {
-        if (err) {
-            console.error(err);
-            res.status(400).json({
-                success: false,
-                message: err
-            });
-        }
-        cognitoUser = result.user;
-        console.log('user name is ' + cognitoUser.getUsername());
-        console.log("congnito signup end");
-
-        const params = {
-            TableName: 'user',
-            Item: {
-                emailId: data.emailId,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                accountId: data.accountId,
-                userName: data.userName,
-                role: data.role,
-                mobileNumber: data.mobilenumber,
-                password: data.password,
-                createdAt: timestamp,
-                updatedAt: timestamp
-            }
-        }
-        const user = {
-            'emailId': params.Item.emailId,
-            "firstName": params.Item.firstName,
-            "lastName": params.Item.lastName,
-            "userName": params.Item.userName,
-            "role": params.Item.role,
-            "accountId":params.Item.accountId,
-            "mobileNumber": params.Item.mobileNumber,
-            "createdAt":params.Item.createdAt,
-            "updatedAt": params.Item.updatedAt
-        }
-        console.log('adding user to dynamodb');
-        dynamoDb.put(params, (error, result) => {
-            if (error) {
-                console.error(error);
+        userPool.signUp(data.emailId, data.password, attributeList, null, function (err, result) {
+            if (err) {
+                console.error(err);
                 res.status(400).json({
                     success: false,
-                    message: error
+                    message: err
                 });
             }
-            res.status(200).json({
-                success: true,
-                user: user
+            cognitoUser = result.user;
+            console.log('user name is ' + cognitoUser.getUsername());
+            console.log("congnito signup end");
+
+            const params = {
+                TableName: 'user',
+                Item: {
+                    emailId: data.emailId,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    accountId: data.accountId,
+                    userName: data.userName,
+                    role: data.role,
+                    mobileNumber: data.mobilenumber,
+                    password: data.password,
+                    createdAt: timestamp,
+                    updatedAt: timestamp
+                }
+            }
+            const user = {
+                'emailId': params.Item.emailId,
+                "firstName": params.Item.firstName,
+                "lastName": params.Item.lastName,
+                "userName": params.Item.userName,
+                "role": params.Item.role,
+                "accountId": params.Item.accountId,
+                "mobileNumber": params.Item.mobileNumber,
+                "createdAt": params.Item.createdAt,
+                "updatedAt": params.Item.updatedAt
+            }
+            console.log('adding user to dynamodb');
+            dynamoDb.put(params, (error, result) => {
+                if (error) {
+                    console.error(error);
+                    res.status(400).json({
+                        success: false,
+                        message: error
+                    });
+                }
+                res.status(200).json({
+                    success: true,
+                    user: user
+                });
             });
         });
-    });
+    }
 }
 
 module.exports.getUser = (req, res) => {
