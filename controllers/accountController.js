@@ -84,30 +84,39 @@ module.exports.registerAccount = (req, res) => {
 
 module.exports.getAccount = (req, res) => {
     console.log('>>>getAccount', req);
-    var params = {
-        TableName: 'account'
-    }
-
-    dynamoDb.scan(params, (error, result) => {
-        if (error) {
-            console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
-            res.status(400).json({
-                success: false,
-                message: error
-            });
-        } else {
-            console.log("Query succeeded.");
-            console.log("Query succeeded." + JSON.stringify(result));
-            result.Items.forEach(function (item) {
-                console.log(" Item :: ", JSON.stringify(item));
-            });
-            res.status(200).json({
-                success: true,
-                accounts: result.Items
-            });
+    const accountId = req.params.id;
+    console.log('accountId==>' + accountId);
+        var params = {
+            TableName: 'account',
+            KeyConditionExpression: "#id = :accountId",
+            ExpressionAttributeNames: {
+                "#id": "id"
+            },
+            ExpressionAttributeValues: {
+                ":accountId": accountId
+            }
         }
-    });
-}
+
+        dynamoDb.query(params, (error, result) => {
+            if (error) {
+                console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
+                res.status(400).json({
+                    success: false,
+                    message: error
+                });
+            } else {
+                console.log("Query succeeded.");
+                console.log("Query succeeded." + JSON.stringify(result));
+                result.Items.forEach(function (item) {
+                    console.log(" Item :: ", JSON.stringify(item));
+                });
+                res.status(200).json({
+                    success: true,
+                    account: result.Items
+                });
+            }
+        });
+    }
 
 module.exports.updateAccount = (req, res) => {
     console.log('>>>updateAccount');

@@ -36,7 +36,7 @@ app.use(function (req, res, next) {
 // API token management
 // Account functions
 app.post('/v1/account', accountController.registerAccount);
-app.get('/v1/account', accountController.getAccount);
+app.get('/v1/account/:id', accountController.getAccount);
 app.put('/v1/account/:id', accountController.updateAccount);
 
 // User Functions

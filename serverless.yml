@@ -57,7 +57,7 @@ functions:
     handler: handler.handler
     events:
       - http:
-          path: /account
+          path: /account/{id}
           method: GET
           cors: true
           authorizer: verify-token
