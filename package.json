@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Ram Vir Singh",
   "license": "ISC",
   "dependencies": {
     "amazon-cognito-identity-js": "^3.0.3",
@@ -19,6 +19,7 @@
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
     "express": "^4.16.4",
+    "i18n": "^0.8.3",
     "jsonwebtoken": "^8.3.0",
     "jwk-to-pem": "^2.0.0",
     "node-fetch": "^2.2.0",
@@ -27,6 +28,7 @@
     "validator": "^10.8.0"
   },
   "devDependencies": {
+    "eslint": "^5.9.0",
     "serverless-aws-documentation": "^1.1.0",
     "serverless-domain-manager": "^2.6.5",
     "serverless-offline": "^3.31.0"
