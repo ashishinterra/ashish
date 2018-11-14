@@ -83,15 +83,31 @@ functions:
           path: /user/{username}
           method: GET
           cors: true
-          authorizer: verify-token 
+          authorizer: verify-token
+
+  listUserByAccount:
+    handler: handler.handler
+    events:
+      - http:
+          path: /account/{id}/user
+          method: GET
+          cors: true
+          authorizer: verify-token
   login:
     handler: handler.handler
     events:
       - http:
           path: /login
-          method: post
+          method: POST
           cors: true
-
+  panel:
+    handler: handler.handler
+    events:
+      - http:
+          path: /panel
+          method: POST
+          cors: true
+          authorizer: verify-token
 
 resources:
    Resources:
@@ -123,6 +139,19 @@ resources:
         KeySchema:
           -
             AttributeName: userName
+            KeyType: HASH
+    panelDynamoDBTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        TableName: 'panel'
+        AttributeDefinitions:
+          -
+            AttributeName: deviceSerialNumber
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: deviceSerialNumber
             KeyType: HASH
         ProvisionedThroughput: 
             ReadCapacityUnits: ${self:custom.tableThroughput}

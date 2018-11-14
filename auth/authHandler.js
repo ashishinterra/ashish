@@ -27,7 +27,7 @@ const generatePolicy = (principalId, effect, resource) => {
         authResponse.policyDocument = policyDocument;
     }
     return authResponse;
-}
+};
 
 
 module.exports.auth = (event, context, callback) => {
@@ -48,6 +48,6 @@ module.exports.auth = (event, context, callback) => {
         }
         // if everything is good, save to request for use in other routes
         console.log('success :: ');
-        return callback(null, generatePolicy(decoded.id, 'Allow', event.methodArn))
+        return callback(null, generatePolicy(decoded.id, 'Allow', event.methodArn));
     });
-}
+};
