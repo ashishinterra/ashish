@@ -18,11 +18,11 @@ module.exports.login = (req, res) => {
 
     if (_.isEmpty(body.userName)) {
         console.error('userName cannot be empty.');
-        throw new UsernameNotFound('userName cannot be empty.');
+        throw new UsernameNotFound(req.t('UsernameNotFound'));
 
     } else if (_.isEmpty(body.password)) {
         console.error('password cannot be empty.');
-        throw new PasswordNotFound('password cannot be empty.');
+        throw new PasswordNotFound(req.t('PasswordNotFound'));
 
     } else {
         var params = {
@@ -40,7 +40,7 @@ module.exports.login = (req, res) => {
             if (error) {
                 console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
                 console.error('wrong username or password');
-                throw new WrongCredentials('wrong username or password');
+                throw new WrongCredentials(req.t('WrongCredentials'));
             } else {
                 console.log("Query succeeded.");
                 console.log("Query succeeded." + JSON.stringify(result));
@@ -76,6 +76,7 @@ module.exports.login = (req, res) => {
                                     console.log('refresh token + ' + result.getRefreshToken().getToken());
                                     res.status(200).json({
                                         success: true,
+                                        user: user,
                                         token: result.getAccessToken().getJwtToken()
                                     });
                                 },
@@ -83,7 +84,7 @@ module.exports.login = (req, res) => {
                                     console.log(errCognito);
                                     res.status(401).json({
                                         errorcode: 'WrongCredentials',
-                                        errormessage: 'wrong username or password'
+                                        errormessage: req.t('WrongCredentials')
                                     });
                                 },
                             });
@@ -91,7 +92,7 @@ module.exports.login = (req, res) => {
                             console.log(`login bcrypt error ${err}`);
                             res.status(401).json({
                                 errorcode: 'WrongCredentials',
-                                errormessage: 'wrong username or password'
+                                errormessage: req.t('WrongCredentials')
                             });
                         }
                     });

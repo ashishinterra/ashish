@@ -16,14 +16,14 @@ module.exports.registerAccount = (req, res, next) => {
     const data = req.body;
     // Request Validation
     if (_.isEmpty(data.emailId)) {
-        throw new EmailIdNotFound('emailId cannot be empty');
+        throw new EmailIdNotFound(req.t('EmailIdNotFound'));
     } else if (!validator.isEmail(data.emailId)) {
-        throw new EmailIdNotFound('emailId is not correct');
+        throw new EmailIdNotFound(req.t('WrongFormattedEmailId'));
     } else if (_.isEmpty(data.deviceSerialNumber)) {
-        throw new SerialNumberNotFound('Device Serial Number cannot be empty');
+        throw new SerialNumberNotFound(req.t('SerialNumberNotFound'));
     } else if (_.isEmpty(data.address) || _.isEmpty(data.city) || _.isEmpty(data.state) ||
         _.isEmpty(data.country) || _.isEmpty(data.zip)) {
-        throw new AddressNotFound('address, city ,state, country and zip cannot be empty');
+        throw new AddressNotFound(req.t('AddressNotFound'));
     } else {
         console.log('request verified');
         const params = {
@@ -61,7 +61,7 @@ module.exports.registerAccount = (req, res, next) => {
         dynamoDb.put(params, (error, result) => {
             if (error) {
                 console.error(error);
-                throw new AccountCreationError('Something went wrong. Please try again.');
+                throw new AccountCreationError(req.t('AccountCreationError'));
             }
             res.status(200).json({
                 success: true,
@@ -90,7 +90,7 @@ module.exports.getAccount = (req, res) => {
     dynamoDb.query(params, (error, result) => {
         if (error) {
             console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
-            throw new AccountNotFound('Something went wrong. Please try again.');
+            throw new AccountNotFound(req.t('AccountNotFound'));
         } else {
             console.log("Query succeeded.");
             console.log("Query succeeded." + JSON.stringify(result));
@@ -113,7 +113,7 @@ module.exports.updateAccount = (req, res) => {
     const id = req.params.id;
     console.log(data);
     if (_.isEmpty(data.deviceSerialNumber)) {
-        throw new SerialNumberNotFound('Device Serial Number cannot be empty');
+        throw new SerialNumberNotFound(req.t('SerialNumberNotFound'));
     } else {
         const params = {
             TableName: 'account',
@@ -131,7 +131,7 @@ module.exports.updateAccount = (req, res) => {
         dynamoDb.update(params, (error, result) => {
             if (error) {
                 console.error(error);
-                throw new AccountNotFound('Something went wrong. Please try again.');
+                throw new AccountNotFound(req.t('AccountNotFound'));
             }
             if (result) {
                 console.log('result', JSON.stringify(result));

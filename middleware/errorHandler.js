@@ -5,7 +5,7 @@ module.exports.errorHandler = (err, req, res, next) => {
     err.statusCode = err.status || 500;
     // All HTTP requests must have a response, so let's send back an error with its status code and message
     res.status(err.statusCode).send({
-      errorcode: err.ErrorCode,
+      errorcode: err.ErrorCode || "UnknownError",
       errormessage: err.message
     });
   };

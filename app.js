@@ -3,31 +3,60 @@
 const express = require('express');
 const cors = require("cors");
 const bodyParser = require('body-parser');
+const i18next = require("i18next");
+const i18nextMiddleware = require("i18next-express-middleware");
+const Backend = require('i18next-node-fs-backend');
+const helmet = require('helmet');
 
 
-const accountController = require('./controllers/accountController');
-const userController = require('./controllers/userController');
-const authController = require('./controllers/authController');
-const panelController = require('./controllers/panelController');
+const indexRoute = require('./router/indexRoute');
 const errHandlerMiddleware = require('./middleware/errorHandler');
 
 const app = express();
 
-  // Use cors
-  app.use(cors());
-  // parse application/json
-  app.use(bodyParser.json());
-  // parse application/x-www-form-urlencoded
-  app.use(bodyParser.urlencoded({
-    extended: true
-  }));
 
-  app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept,Authorization');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, PATCH, PUT');
-    next();
+i18next.use(Backend)
+  .use(i18nextMiddleware.LanguageDetector)
+  .init({
+    backend: {
+      loadPath: __dirname + '/locales/{{lng}}/{{ns}}.json',
+      addPath: __dirname + '/locales/{{lng}}/{{ns}}.missing.json'
+    },
+    fallbackLng: 'en',
+    preload: ['en', 'ja'],
+    saveMissing: true
   });
+
+app.use(i18nextMiddleware.handle(i18next));
+
+
+// Use cors
+app.use(cors());
+// parse application/json
+app.use(bodyParser.json());
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+
+app.use(function (req, res, next) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept,Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, PATCH, PUT');
+  next();
+});
+app.use(helmet());
+
+//middleware to extract locale
+app.use((req, res, next) => {
+  console.log('middleware to extract locale', req);
+  let local = req.get('accept-language');
+  if (!local) local = 'en-US';
+  console.log(' locale', local);
+  req.local = local;
+  console.log('middleware to extract locale', req.local);
+  next();
+});
 
 app.get('/', (req, res, next) => {
   console.error(`${req.ip} tried to reach ${req.originalUrl}`);
@@ -36,24 +65,9 @@ app.get('/', (req, res, next) => {
   next(err);
 });
 
-
 // ToDo 
-// API token management
-// Account functions
-app.post('/v1/account', accountController.registerAccount);
-app.get('/v1/account/:id', accountController.getAccount);
-app.put('/v1/account/:id', accountController.updateAccount);
-app.get('/v1/account/:id/user', userController.getUserByAccount);
-
-// User Functions
-app.post('/v1/user', userController.registerUser);
-app.get('/v1/user/:username', userController.getUser);
-
-//Panel Functions
-app.post('/v1/panel', panelController.addPanel);
-
-app.post('/v1/login', authController.login);
-app.post('/v1/verify', userController.verifyUser);
+// API token management functions
+app.use('/v1', indexRoute);
 
 //this should be last statement before export app
 app.use(errHandlerMiddleware.errorHandler);

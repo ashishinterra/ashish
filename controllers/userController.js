@@ -28,36 +28,36 @@ module.exports.registerUser = (req, res) => {
     if (_.isEmpty(data.emailId)) {
 
         console.error('emailId cannot be empty');
-        throw new EmailIdNotFound('emailId cannot be empty');
+        throw new EmailIdNotFound(req.t('EmailIdNotFound'));
 
     } else if (!validator.isEmail(data.emailId)) {
         console.error('emailId is not correct');
-        throw new EmailIdNotFound('emailId is not correct');
+        throw new EmailIdNotFound(req.t('WrongFormattedEmailId'));
 
     } else if (_.isEmpty(data.accountId)) {
 
         console.error('accountId cannot be empty.');
-        throw new AccountNotFound('accountId cannot be empty.');
+        throw new AccountNotFound(req.t('AccountIdNotFound'));
 
     } else if (_.isEmpty(data.userName)) {
 
         console.error('userName cannot be empty.');
-        throw new UsernameNotFound('userName cannot be empty.');
+        throw new UsernameNotFound(req.t('UsernameNotFound'));
 
     } else if (_.isEmpty(data.password)) {
 
         console.error('password cannot be empty.');
-        throw new PasswordNotFound('password cannot be empty.');
+        throw new PasswordNotFound(req.t('PasswordNotFound'));
 
     } else if (_.isEmpty(data.firstName)) {
 
         console.error('firstName cannot be empty.');
-        throw new FirstNameNotFound('firstName cannot be empty.');
+        throw new FirstNameNotFound(req.t('FirstNameNotFound'));
 
     } else if (_.isEmpty(data.role)) {
 
         console.error('role cannot be empty.');
-        throw new RoleNotFound('role cannot be empty.');
+        throw new RoleNotFound(req.t('RoleNotFound'));
 
     } else {
         let isUserExist = false;
@@ -76,7 +76,7 @@ module.exports.registerUser = (req, res) => {
             if (error) {
                 //to be changed
                 console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
-                throw new UserCreationError();
+                throw new UserCreationError(req.t('AccountCreationError'));
             } else {
                 console.log("Query succeeded.");
                 console.log("Query succeeded." + JSON.stringify(result));
@@ -105,7 +105,7 @@ module.exports.registerUser = (req, res) => {
             userPool.signUp(data.emailId, data.password, attributeList, null, function (err, result) {
                 if (err) {
                     console.error(err);
-                    throw new UserCreationError();
+                    throw new UserCreationError(req.t('AccountCreationError'));
                 }
                 cognitoUser = result.user;
                 console.log('user name is ' + cognitoUser.getUsername());
@@ -151,7 +151,7 @@ module.exports.registerUser = (req, res) => {
                 dynamoDb.put(params, (error, result) => {
                     if (error) {
                         console.error(error);
-                        throw new UserCreationError();
+                        throw new UserCreationError(req.t('AccountCreationError'));
                     }
                     res.status(200).json({
                         success: true,
@@ -160,7 +160,7 @@ module.exports.registerUser = (req, res) => {
                 });
             });
         } else {
-            throw new UserNameAlreadyExists("UserName already exist");
+            throw new UserNameAlreadyExists(req.t('UserNameAlreadyExists'));
         }
     }
 };
@@ -184,7 +184,7 @@ module.exports.getUser = (req, res) => {
     dynamoDb.query(params, (error, result) => {
         if (error) {
             console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
-            throw new UserNotFound();
+            throw new UserNotFound(req.t('AccountCreationError'));
         } else {
             console.log("Query succeeded.");
             console.log("Query succeeded." + JSON.stringify(result));
@@ -200,7 +200,7 @@ module.exports.getUser = (req, res) => {
                 });
             } else {
                 console.log("No User found");
-                throw new UserNotFound("No User found");
+                throw new UserNotFound(req.t('UserNotFound'));
             }
         }
     });
@@ -226,7 +226,7 @@ module.exports.verifyUser = (req, res) => {
         if (err) {
             console.log(err);
             console.error('Could not verify account!');
-            throw new VerifyUserError('Could not verify account!');
+            throw new VerifyUserError(req.t('VerifyUserError'));
         }
         if (result == "SUCCESS") {
             console.log("Successfully verified account!");
@@ -237,7 +237,7 @@ module.exports.verifyUser = (req, res) => {
             });
         } else {
             console.error('Could not verify account!');
-            throw new VerifyUserError('Could not verify account!');
+            throw new VerifyUserError(req.t('VerifyUserError'));
         }
     });
 };
@@ -259,7 +259,7 @@ module.exports.getUserByAccount = (req, res) => {
         if (error) {
             console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
             console.log("No User found");
-            throw new UserNotFound("No User found");
+            throw new UserNotFound(req.t('UserNotFound'));
         } else {
             console.log("Query succeeded.");
             console.log("Query succeeded." + JSON.stringify(result));
@@ -270,7 +270,7 @@ module.exports.getUserByAccount = (req, res) => {
                 });
             } else {
                 console.log("No User found");
-                throw new UserNotFound("No User found");
+                throw new UserNotFound(req.t('UserNotFound'));
             }
         }
     });
