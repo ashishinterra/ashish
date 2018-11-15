@@ -22,7 +22,7 @@ i18next.use(Backend)
       loadPath: __dirname + '/locales/{{lng}}/{{ns}}.json',
       addPath: __dirname + '/locales/{{lng}}/{{ns}}.missing.json'
     },
-    fallbackLng: 'en',
+    fallbackLng: 'en-US',
     preload: ['en', 'ja'],
     saveMissing: true
   });
@@ -46,17 +46,6 @@ app.use(function (req, res, next) {
   next();
 });
 app.use(helmet());
-
-//middleware to extract locale
-app.use((req, res, next) => {
-  console.log('middleware to extract locale', req);
-  let local = req.get('accept-language');
-  if (!local) local = 'en-US';
-  console.log(' locale', local);
-  req.local = local;
-  console.log('middleware to extract locale', req.local);
-  next();
-});
 
 app.get('/', (req, res, next) => {
   console.error(`${req.ip} tried to reach ${req.originalUrl}`);

@@ -75,6 +75,13 @@ functions:
       - http:
           path: /user
           method: POST
+          cors: true
+  isuserconfirmed:
+    handler: handler.handler
+    events:
+      - http:
+          path: /user/isconfirmed
+          method: POST
           cors: true 
   listuser:
     handler: handler.handler

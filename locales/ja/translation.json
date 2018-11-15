@@ -13,5 +13,7 @@
     "RoleNotFound": "ロールを空にすることはできません。",
     "UserNameAlreadyExists":"UserNameは既に存在します",
     "UserNotFound":"ユーザーが見つかりません",
-    "VerifyUserError":"アカウントを確認できませんでした。"
+    "VerifyUserError":"アカウントを確認できませんでした。",
+    "UsernameMustEMail": "UserName must be an email adddress",
+    "UserNotConfirmedException": "User is not confirmed"
 }

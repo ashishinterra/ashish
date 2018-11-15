@@ -11,4 +11,7 @@ userRoute.route('/')
 userRoute.route('/:username')
          .get( userController.getUser);
 
+userRoute.route('/isconfirmed')
+         .post(userController.isUserConfirm);
+
 module.exports = userRoute;

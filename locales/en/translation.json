@@ -13,6 +13,8 @@
     "RoleNotFound": "role cannot be empty.",
     "UserNameAlreadyExists":"UserName already exist",
     "UserNotFound":"No User found",
-    "VerifyUserError":"Could not verify account!"
+    "VerifyUserError":"Could not verify account!",
+    "UsernameMustEMail": "UserName must be an email adddress",
+    "UserNotConfirmedException": "User is not confirmed."
     
 }

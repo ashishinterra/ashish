@@ -3,6 +3,7 @@ const AmazonCognitoIdentity = require('amazon-cognito-identity-js');
 const CognitoUserPool = AmazonCognitoIdentity.CognitoUserPool;
 global.fetch = require('node-fetch');
 const bcrypt = require("bcryptjs");
+const validator = require('validator');
 
 const dynamoDb = require('../db/dynamodb');
 const config = require('../config/aws.json');
@@ -10,15 +11,20 @@ const config = require('../config/aws.json');
 const UsernameNotFound = require('../error/UsernameNotFound');
 const PasswordNotFound = require('../error/PasswordNotFound');
 const WrongCredentials = require('../error/WrongCredentials');
+const EmailIdNotFound = require('../error/EmailIdNotFound');
 
 
 module.exports.login = (req, res) => {
     console.log(">> Entering Login Function");
-    var body = _.pick(req.body, ['userName', 'password']);
+    const body = _.pick(req.body, ['userName', 'password']);
 
     if (_.isEmpty(body.userName)) {
         console.error('userName cannot be empty.');
         throw new UsernameNotFound(req.t('UsernameNotFound'));
+
+    } else if (!validator.isEmail(body.userName)) {
+        console.error('userName cannot be empty.');
+        throw new EmailIdNotFound(req.t('WrongFormattedEmailId'));
 
     } else if (_.isEmpty(body.password)) {
         console.error('password cannot be empty.');
@@ -51,8 +57,7 @@ module.exports.login = (req, res) => {
                     console.log(" Item :: ", JSON.stringify(item));
                     const user = item;
                     console.log(" user :: ", user);
-                    bcrypt.compare(body.password, item.password, (err, isMatch) => {
-                        if (isMatch) {
+                    if (body.password === item.password) {
                             // Aws congnito related logic
                             const poolData = {
                                 UserPoolId: config.aws.UserPoolId,
@@ -89,13 +94,12 @@ module.exports.login = (req, res) => {
                                 },
                             });
                         } else {
-                            console.log(`login bcrypt error ${err}`);
+                            console.log(`password does not match`);
                             res.status(401).json({
                                 errorcode: 'WrongCredentials',
                                 errormessage: req.t('WrongCredentials')
                             });
                         }
-                    });
                 });
             }
         });

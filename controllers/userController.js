@@ -4,7 +4,6 @@ const CognitoUserPool = AmazonCognitoIdentity.CognitoUserPool;
 global.fetch = require('node-fetch');
 const validator = require('validator');
 const _ = require('lodash');
-const bcrypt = require("bcryptjs");
 
 const dynamoDb = require('../db/dynamodb');
 const config = require('../config/aws.json');
@@ -44,6 +43,10 @@ module.exports.registerUser = (req, res) => {
         console.error('userName cannot be empty.');
         throw new UsernameNotFound(req.t('UsernameNotFound'));
 
+    } else if (!validator.isEmail(data.userName)) {
+        console.error('userName emailId is not correct');
+        throw new UsernameNotFound(req.t('UsernameMustEMail'));
+
     } else if (_.isEmpty(data.password)) {
 
         console.error('password cannot be empty.');
@@ -60,7 +63,7 @@ module.exports.registerUser = (req, res) => {
         throw new RoleNotFound(req.t('RoleNotFound'));
 
     } else {
-        let isUserExist = false;
+
         const params = {
             TableName: 'user',
             KeyConditionExpression: "#uname = :username",
@@ -68,7 +71,7 @@ module.exports.registerUser = (req, res) => {
                 "#uname": "userName"
             },
             ExpressionAttributeValues: {
-                ":username": body.userName
+                ":username": data.userName
             }
         };
 
@@ -76,92 +79,93 @@ module.exports.registerUser = (req, res) => {
             if (error) {
                 //to be changed
                 console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
-                throw new UserCreationError(req.t('AccountCreationError'));
+                res.status(400).json({
+                    errorcode: 'AccountCreationError',
+                    errormessage: req.t('AccountCreationError')
+                });
             } else {
                 console.log("Query succeeded.");
                 console.log("Query succeeded." + JSON.stringify(result));
                 if (result.Items.length > 0) {
-                    isUserExist = true;
+                    res.status(400).json({
+                        errorcode: 'UserNameAlreadyExists',
+                        errormessage: req.t('UserNameAlreadyExists')
+                    });
+                } else {
+                    // Aws congnito related logic
+                    const poolData = {
+                        UserPoolId: config.aws.UserPoolId,
+                        ClientId: config.aws.ClientId
+                    };
+                    const pool_region = config.aws.region;
+                    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+                    console.log("pool set up done. now setting up data to list ");
+                    let attributeList = [];
+                    attributeList.push(new AmazonCognitoIdentity.CognitoUserAttribute({
+                        Name: "email",
+                        Value: data.emailId
+                    }));
+                    console.log("now signup congnito");
+
+                    userPool.signUp(data.emailId, data.password, attributeList, null, function (err, result) {
+                        if (err) {
+                            console.error(err);
+                            res.status(400).json({
+                                errorcode: 'UserNameAlreadyExists',
+                                errormessage: req.t('UserNameAlreadyExists')
+                            });
+                        }
+                        cognitoUser = result.user;
+                        console.log('user name is ' + cognitoUser.getUsername());
+                        console.log("congnito signup end");
+
+                        const params = {
+                            TableName: 'user',
+                            Item: {
+                                emailId: data.emailId,
+                                firstName: data.firstName,
+                                lastName: data.lastName,
+                                accountId: data.accountId,
+                                userName: data.userName,
+                                role: data.role,
+                                mobileNumber: data.mobilenumber,
+                                password: data.password,
+                                isActive: true,
+                                createdAt: timestamp,
+                                updatedAt: timestamp
+                            }
+                        };
+                        const user = {
+                            'emailId': params.Item.emailId,
+                            "firstName": params.Item.firstName,
+                            "lastName": params.Item.lastName,
+                            "userName": params.Item.userName,
+                            "role": params.Item.role,
+                            "accountId": params.Item.accountId,
+                            "isActive": true,
+                            "mobileNumber": params.Item.mobileNumber,
+                            "createdAt": params.Item.createdAt,
+                            "updatedAt": params.Item.updatedAt
+                        };
+                        console.log('adding user to dynamodb');
+                        dynamoDb.put(params, (error, result) => {
+                            if (error) {
+                                console.error(error);
+                                res.status(400).json({
+                                    errorcode: 'UserNameAlreadyExists',
+                                    errormessage: req.t('UserNameAlreadyExists')
+                                });
+                            }
+                            res.status(200).json({
+                                success: true,
+                                user: user
+                            });
+                        });
+                    });
                 }
             }
         });
-        if (!isUserExist) {
-            // Aws congnito related logic
-            const poolData = {
-                UserPoolId: config.aws.UserPoolId,
-                ClientId: config.aws.ClientId
-            };
-            const pool_region = config.aws.region;
-            const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-
-            console.log("pool set up done. now setting up data to list ");
-            let attributeList = [];
-            attributeList.push(new AmazonCognitoIdentity.CognitoUserAttribute({
-                Name: "email",
-                Value: data.emailId
-            }));
-            console.log("now signup congnito");
-
-            userPool.signUp(data.emailId, data.password, attributeList, null, function (err, result) {
-                if (err) {
-                    console.error(err);
-                    throw new UserCreationError(req.t('AccountCreationError'));
-                }
-                cognitoUser = result.user;
-                console.log('user name is ' + cognitoUser.getUsername());
-                console.log("congnito signup end");
-
-                // encrypt password
-                bcrypt.genSalt(10, (err, salt) => {
-                    bcrypt.hash(data.password, salt, (err, hash) => {
-                        data.password = hash;
-                        next();
-                    });
-                });
-
-                const params = {
-                    TableName: 'user',
-                    Item: {
-                        emailId: data.emailId,
-                        firstName: data.firstName,
-                        lastName: data.lastName,
-                        accountId: data.accountId,
-                        userName: data.userName,
-                        role: data.role,
-                        mobileNumber: data.mobilenumber,
-                        password: data.password,
-                        isActive: true,
-                        createdAt: timestamp,
-                        updatedAt: timestamp
-                    }
-                };
-                const user = {
-                    'emailId': params.Item.emailId,
-                    "firstName": params.Item.firstName,
-                    "lastName": params.Item.lastName,
-                    "userName": params.Item.userName,
-                    "role": params.Item.role,
-                    "accountId": params.Item.accountId,
-                    "isActive": true,
-                    "mobileNumber": params.Item.mobileNumber,
-                    "createdAt": params.Item.createdAt,
-                    "updatedAt": params.Item.updatedAt
-                };
-                console.log('adding user to dynamodb');
-                dynamoDb.put(params, (error, result) => {
-                    if (error) {
-                        console.error(error);
-                        throw new UserCreationError(req.t('AccountCreationError'));
-                    }
-                    res.status(200).json({
-                        success: true,
-                        user: user
-                    });
-                });
-            });
-        } else {
-            throw new UserNameAlreadyExists(req.t('UserNameAlreadyExists'));
-        }
     }
 };
 
@@ -274,4 +278,71 @@ module.exports.getUserByAccount = (req, res) => {
             }
         }
     });
+};
+
+
+module.exports.isUserConfirm = (req, res) => {
+    console.log('>>>isUserConfirm');
+    const body = _.pick(req.body, ['userName', 'password']);
+    console.log('>>> request body', body);
+    if (_.isEmpty(body.userName)) {
+        console.error('userName cannot be empty.');
+        throw new UsernameNotFound(req.t('UsernameNotFound'));
+
+    } else if (!validator.isEmail(body.userName)) {
+        console.error('userName cannot be empty.');
+        throw new EmailIdNotFound(req.t('WrongFormattedEmailId'));
+
+    } else if (_.isEmpty(body.password)) {
+        console.error('password cannot be empty.');
+        throw new PasswordNotFound(req.t('PasswordNotFound'));
+
+    } else {
+        console.log('>>> request body verified');
+        // Aws congnito related logic
+        const poolData = {
+            UserPoolId: config.aws.UserPoolId,
+            ClientId: config.aws.ClientId
+        };
+        console.log('>>> poolData', poolData);
+        const pool_region = config.aws.region;
+        const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+        console.log('authenticationDetails');
+        const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+            Username: body.userName,
+            Password: body.password,
+        });
+        const userData = {
+            Username: body.userName,
+            Pool: userPool
+        };
+        console.log('>>> userData', userData);
+        const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+        console.log('authenticateUser');
+        cognitoUser.authenticateUser(authenticationDetails, {
+            onSuccess: function (result) {
+                console.log('access token + ' + result.getAccessToken().getJwtToken());
+                res.status(200).json({
+                    success: true,
+                    user: user,
+                    message: "user is confirmed"
+                });
+            },
+            onFailure: function (errCognito) {
+                console.log('errCognito ||>>', errCognito);
+                const errorcode = errCognito.code;
+                if (errorcode === 'UserNotConfirmedException') {
+                    res.status(401).json({
+                        errorcode: 'UserNotConfirmedException',
+                        errormessage: req.t('UserNotConfirmedException')
+                    });
+                } else {
+                    res.status(401).json({
+                        errorcode: 'WrongCredentials',
+                        errormessage: req.t('WrongCredentials')
+                    });
+                }
+            },
+        });
+    }
 };

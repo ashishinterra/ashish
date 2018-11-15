@@ -47,7 +47,7 @@ module.exports.auth = (event, context, callback) => {
             return callback(new Error('[401] Unauthorized, authorization Token expired'));
         }
         // if everything is good, save to request for use in other routes
-        console.log('success :: ');
+        console.log('success :: ',decoded);
         return callback(null, generatePolicy(decoded.id, 'Allow', event.methodArn));
     });
 };
