@@ -27,6 +27,7 @@ i18next.use(Backend)
     saveMissing: true
   });
 
+// Localization middleware
 app.use(i18nextMiddleware.handle(i18next));
 
 
@@ -45,6 +46,7 @@ app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, PATCH, PUT');
   next();
 });
+
 app.use(helmet());
 
 app.get('/', (req, res, next) => {

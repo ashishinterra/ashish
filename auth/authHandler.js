@@ -15,6 +15,7 @@ const pem = jwkToPem(jwk);
 const generatePolicy = (principalId, effect, resource) => {
     const authResponse = {};
     authResponse.principalId = principalId;
+    console.log('principalId :: ' , principalId);
     if (effect && resource) {
         const policyDocument = {};
         policyDocument.Version = '2012-10-17';
@@ -39,15 +40,13 @@ module.exports.auth = (event, context, callback) => {
     } else {
         return callback(new Error('[401] Unauthorized, authorization Token not found'));
     }
-    jwt.verify(token, pem, {
-        algorithms: ['RS256']
-    }, (err, decoded) => {
+    jwt.verify(token, pem, {algorithms: ['RS256']}, (err, decoded) => {
         if (err) {
             console.log('err :: ' + err);
             return callback(new Error('[401] Unauthorized, authorization Token expired'));
         }
         // if everything is good, save to request for use in other routes
         console.log('success :: ',decoded);
-        return callback(null, generatePolicy(decoded.id, 'Allow', event.methodArn));
+        return callback(null, generatePolicy(decoded.event_id, 'Allow', event.methodArn));
     });
 };

@@ -6,6 +6,7 @@ const bcrypt = require("bcryptjs");
 const validator = require('validator');
 
 const dynamoDb = require('../db/dynamodb');
+const USERS_TABLE = process.env.USERS_TABLE;
 const config = require('../config/aws.json');
 //Error Imports
 const UsernameNotFound = require('../error/UsernameNotFound');
@@ -32,7 +33,7 @@ module.exports.login = (req, res) => {
 
     } else {
         var params = {
-            TableName: 'user',
+            TableName: USERS_TABLE,
             KeyConditionExpression: "#uname = :username",
             ExpressionAttributeNames: {
                 "#uname": "userName"
@@ -52,12 +53,11 @@ module.exports.login = (req, res) => {
                 console.log("Query succeeded." + JSON.stringify(result));
                 if (result.Items.length > 0) {
                     console.log("Query succeeded || >>> " + result.Items.length);
-                }
-                result.Items.forEach(function (item) {
-                    console.log(" Item :: ", JSON.stringify(item));
-                    const user = item;
-                    console.log(" user :: ", user);
-                    if (body.password === item.password) {
+                    result.Items.forEach(function (item) {
+                        console.log(" Item :: ", JSON.stringify(item));
+                        const user = item;
+                        console.log(" user :: ", user);
+                        if (body.password === item.password) {
                             // Aws congnito related logic
                             const poolData = {
                                 UserPoolId: config.aws.UserPoolId,
@@ -82,7 +82,8 @@ module.exports.login = (req, res) => {
                                     res.status(200).json({
                                         success: true,
                                         user: user,
-                                        token: result.getAccessToken().getJwtToken()
+                                        token: result.getAccessToken().getJwtToken(),
+                                        refreshtoken: result.getRefreshToken().getToken()
                                     });
                                 },
                                 onFailure: function (errCognito) {
@@ -96,11 +97,18 @@ module.exports.login = (req, res) => {
                         } else {
                             console.log(`password does not match`);
                             res.status(401).json({
-                                errorcode: 'WrongCredentials',
-                                errormessage: req.t('WrongCredentials')
+                                errorcode: 'WrongPassword',
+                                errormessage: req.t('WrongPassword')
                             });
                         }
-                });
+                    });
+                } else {
+                    console.log(`userName not found`, body.userName);
+                    res.status(401).json({
+                        errorcode: 'EmailIDNotExist',
+                        errormessage: req.t('EmailIDNotExist')
+                    });
+                }
             }
         });
     }

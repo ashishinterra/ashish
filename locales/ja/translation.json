@@ -15,5 +15,7 @@
     "UserNotFound":"ユーザーが見つかりません",
     "VerifyUserError":"アカウントを確認できませんでした。",
     "UsernameMustEMail": "UserName must be an email adddress",
-    "UserNotConfirmedException": "User is not confirmed"
+    "UserNotConfirmedException": "User is not confirmed",
+    "EmailIDNotExist": "EmailId does not exist",
+    "WrongPassword" : "Wrong password"
 }

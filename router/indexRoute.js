@@ -16,7 +16,7 @@ indexRoute.use(function timeLog(req, res, next) {
 
 indexRoute.use('/user', userRoute);
 indexRoute.use('/account', accountRoute);
-indexRoute.use('/panel', panelRoute);
+indexRoute.use('/homexdevice', panelRoute);
 indexRoute.use('/login', authRoute);
 indexRoute.use('/verify', verifyRoute);
 

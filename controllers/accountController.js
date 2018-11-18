@@ -3,6 +3,8 @@ const validator = require('validator');
 const _ = require('lodash');
 
 const dynamoDb = require('../db/dynamodb');
+const ACCOUNT_TABLE = process.env.ACCOUNT_TABLE;
+
 //Custom Error imports
 const EmailIdNotFound = require('../error/EmailIdNotFound');
 const SerialNumberNotFound = require('../error/SerialNumberNotFound');
@@ -27,7 +29,7 @@ module.exports.registerAccount = (req, res, next) => {
     } else {
         console.log('request verified');
         const params = {
-            TableName: 'account',
+            TableName: ACCOUNT_TABLE,
             Item: {
                 id: uuid.v1(),
                 emailId: data.emailId,
@@ -61,7 +63,10 @@ module.exports.registerAccount = (req, res, next) => {
         dynamoDb.put(params, (error, result) => {
             if (error) {
                 console.error(error);
-                throw new AccountCreationError(req.t('AccountCreationError'));
+                res.status(400).json({
+                    errorcode: 'AccountCreationError',
+                    errormessage: req.t('AccountCreationError')
+                });
             }
             res.status(200).json({
                 success: true,
@@ -77,7 +82,7 @@ module.exports.getAccount = (req, res) => {
     const accountId = req.params.id;
     console.log('accountId==>' + accountId);
     var params = {
-        TableName: 'account',
+        TableName: ACCOUNT_TABLE,
         KeyConditionExpression: "#id = :accountId",
         ExpressionAttributeNames: {
             "#id": "id"
@@ -90,7 +95,10 @@ module.exports.getAccount = (req, res) => {
     dynamoDb.query(params, (error, result) => {
         if (error) {
             console.error("Unable to query. Error:", JSON.stringify(error, null, 2));
-            throw new AccountNotFound(req.t('AccountNotFound'));
+            res.status(400).json({
+                errorcode: 'AccountNotFound',
+                errormessage: req.t('AccountNotFound')
+            });
         } else {
             console.log("Query succeeded.");
             console.log("Query succeeded." + JSON.stringify(result));
@@ -116,7 +124,7 @@ module.exports.updateAccount = (req, res) => {
         throw new SerialNumberNotFound(req.t('SerialNumberNotFound'));
     } else {
         const params = {
-            TableName: 'account',
+            TableName: ACCOUNT_TABLE,
             Key: {
                 id: id
             },
@@ -131,7 +139,10 @@ module.exports.updateAccount = (req, res) => {
         dynamoDb.update(params, (error, result) => {
             if (error) {
                 console.error(error);
-                throw new AccountNotFound(req.t('AccountNotFound'));
+                res.status(400).json({
+                    errorcode: 'AccountNotFound',
+                    errormessage: req.t('AccountNotFound')
+                });
             }
             if (result) {
                 console.log('result', JSON.stringify(result));

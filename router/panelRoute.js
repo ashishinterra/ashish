@@ -4,6 +4,6 @@ const panelRoute = express.Router({ mergeParams: true });
 const panelController = require('../controllers/panelController');
 
 panelRoute.route('/')
-    .post(panelController.addPanel);
+    .post(panelController.addhomexPanel);
 
     module.exports = panelRoute;

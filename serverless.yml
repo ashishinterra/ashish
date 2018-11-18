@@ -21,7 +21,10 @@ provider:
         - dynamodb:Query
         - dynamodb:Scan
        Resource: "*"
-
+  environment:
+    USERS_TABLE: ${self:custom.table.userTable}
+    ACCOUNT_TABLE: ${self:custom.table.accountTable}
+    PANEL_TABLE: ${self:custom.table.panelTable}
 plugins:
   - serverless-domain-manager
   - serverless-aws-documentation
@@ -30,6 +33,10 @@ plugins:
 
 custom:
   tableThroughput: 1
+  table:
+    accountTable: 'account'
+    userTable: 'user'
+    panelTable: 'panel'
   customDomain:
     domainName: 'api.homexcloud.com'
     basePath: 'v1'
@@ -39,6 +46,7 @@ custom:
 functions:
   verify-token:
     handler: auth/authHandler.auth
+
   verifyUser:
     handler: handler.handler
     events:
@@ -46,6 +54,7 @@ functions:
           path: /verify
           method: POST
           cors: true
+
   createaccount:
     handler: handler.handler
     events:
@@ -53,6 +62,7 @@ functions:
           path: /account
           method: POST
           cors: true
+
   listaccount:
     handler: handler.handler
     events:
@@ -61,6 +71,7 @@ functions:
           method: GET
           cors: true
           authorizer: verify-token
+
   updateaccount:
     handler: handler.handler
     events:
@@ -69,6 +80,7 @@ functions:
           method: PUT
           cors: true
           authorizer: verify-token
+
   createuser:
     handler: handler.handler
     events:
@@ -76,6 +88,7 @@ functions:
           path: /user
           method: POST
           cors: true
+
   isuserconfirmed:
     handler: handler.handler
     events:
@@ -83,6 +96,7 @@ functions:
           path: /user/isconfirmed
           method: POST
           cors: true 
+
   listuser:
     handler: handler.handler
     events:
@@ -100,6 +114,7 @@ functions:
           method: GET
           cors: true
           authorizer: verify-token
+
   login:
     handler: handler.handler
     events:
@@ -107,11 +122,36 @@ functions:
           path: /login
           method: POST
           cors: true
-  panel:
+
+  resetpasswordcode:
     handler: handler.handler
     events:
       - http:
-          path: /panel
+          path: /user/resetpasswordcode
+          method: POST
+          cors: true
+
+  resetPassword:
+    handler: handler.handler
+    events:
+      - http:
+          path: /user/resetpassword
+          method: POST
+          cors: true
+
+  resendConfirmation:
+    handler: handler.handler
+    events:
+      - http:
+          path: /user/resendconfirmation
+          method: POST
+          cors: true
+
+  homexcloudpanel:
+    handler: handler.handler
+    events:
+      - http:
+          path: /homexdevice
           method: POST
           cors: true
           authorizer: verify-token
@@ -122,7 +162,7 @@ resources:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
-        TableName: 'account'
+        TableName: ${self:custom.table.accountTable}
         AttributeDefinitions:
           -
             AttributeName: id
@@ -138,7 +178,7 @@ resources:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
-        TableName: 'user'
+        TableName: ${self:custom.table.userTable}
         AttributeDefinitions:
           -
             AttributeName: userName
@@ -147,11 +187,14 @@ resources:
           -
             AttributeName: userName
             KeyType: HASH
+        ProvisionedThroughput: 
+            ReadCapacityUnits: ${self:custom.tableThroughput}
+            WriteCapacityUnits: ${self:custom.tableThroughput}
     panelDynamoDBTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
-        TableName: 'panel'
+        TableName: ${self:custom.table.panelTable}
         AttributeDefinitions:
           -
             AttributeName: deviceSerialNumber

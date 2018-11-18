@@ -14,4 +14,13 @@ userRoute.route('/:username')
 userRoute.route('/isconfirmed')
          .post(userController.isUserConfirm);
 
+userRoute.route('/resetpasswordcode')
+         .post(userController.resetPasswordVerificationCode);
+
+userRoute.route('/resetpassword')
+         .post(userController.resetPassword);
+
+userRoute.route('/resendconfirmation')
+         .post(userController.resendConfirmation);
+
 module.exports = userRoute;

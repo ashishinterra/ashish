@@ -15,6 +15,8 @@
     "UserNotFound":"No User found",
     "VerifyUserError":"Could not verify account!",
     "UsernameMustEMail": "UserName must be an email adddress",
-    "UserNotConfirmedException": "User is not confirmed."
+    "UserNotConfirmedException": "User is not confirmed.",
+    "EmailIDNotExist": "EmailId does not exist",
+    "WrongPassword" : "Wrong password"
     
 }

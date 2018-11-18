@@ -2,16 +2,15 @@ const uuid = require('uuid');
 const _ = require('lodash');
 
 const dynamoDb = require('../db/dynamodb');
+const PANEL_TABLE = process.env.PANEL_TABLE;
 //Custom Error imports
-const EmailIdNotFound = require('../error/EmailIdNotFound');
-const PanelAdditionError = require('../error/PanelAdditionError');
+const SerialNumberNotFound = require('../error/SerialNumberNotFound');
+const AccountNotFound = require('../error/AccountNotFound');
 
 
-module.exports.addPanel = (req, res) => {
-
-    console.log('>>>addPanel');
+module.exports.addhomexPanel = (req, res) => {
+    console.log('>>> addhomexPanel');
     const timestamp = new Date().getTime();
-    console.log(req);
     const data = req.body;
     console.log(data);
 
@@ -22,7 +21,7 @@ module.exports.addPanel = (req, res) => {
     } else {
         console.log('request body verified');
         const params = {
-            TableName: 'panel',
+            TableName: PANEL_TABLE,
             Item: {
                 id: uuid.v1(),
                 deviceSerialNumber: data.deviceSerialNumber,
@@ -46,7 +45,10 @@ module.exports.addPanel = (req, res) => {
         console.log('adding data to dynamodb');
         dynamoDb.put(params, (error, result) => {
             if (error) {
-                throw new PanelAdditionError();
+                res.status(400).json({
+                    errorcode: 'PanelAdditionError',
+                    errormessage: req.t('PanelAdditionError')
+                });
             }
             res.status(200).json({
                 success: true,
