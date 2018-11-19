@@ -1,0 +1,50 @@
+---
+swagger: "2.0"
+info:
+  description: "This is a simple API"
+  version: "1.0.0"
+  title: "Simple Panel API"
+host: "api.homexcloud.com"
+basePath: "/panel"
+schemes:
+- "https"
+paths:
+  /location:
+    post:
+      tags:
+      - "Panel"
+      summary: "find location"
+      description: "search location"
+      operationId: "addInventory"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "location"
+        description: "location to be search"
+        required: false
+        schema:
+          $ref: "#/definitions/location"
+      responses:
+        200:
+          description: "location find"
+        400:
+          description: "invalid input, object invalid"
+        409:
+          description: "an existing item already exists"
+      x-swagger-router-controller: "Panel"
+definitions:
+  location:
+    type: "object"
+    required:
+    - "latitude"
+    - "longitude"
+    properties:
+      latitude:
+        type: "string"
+        example: "28.535517"
+      longitude:
+        type: "string"
+        example: "77.39755555550"
